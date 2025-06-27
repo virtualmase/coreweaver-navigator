@@ -1,0 +1,273 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Coreweaver Labs builds ethical AI for smarter, greener cities." />
+  <title>Coreweaver Labs</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function Navbar() {
+      return (
+        <nav className="bg-gray-900 p-4 flex justify-center space-x-6 text-white">
+          <a href="#about" className="hover:text-teal-400">About</a>
+          <a href="#capabilities" className="hover:text-teal-400">Capabilities</a>
+          <a href="#navigator" className="hover:text-teal-400">Navigator</a>
+          <a href="#contact" className="hover:text-teal-400">Contact</a>
+        </nav>
+      );
+    }
+
+    function Hero() {
+      return (
+        <section className="bg-gray-800 text-white text-center py-16">
+          <h1 className="text-4xl font-bold text-teal-400" style={{ textShadow: '0 0 10px #2A9D8F' }}>
+            Navigate the Future with Ethical AI
+          </h1>
+          <p className="mt-4 text-lg max-w-2xl mx-auto">
+            Coreweaver Labs builds decentralized AI to create smarter, greener cities and a thriving planet for a better tomorrow.
+          </p>
+          <div className="mt-6 flex justify-center gap-4">
+            <a href="#navigator" className="inline-block bg-teal-400 text-gray-900 px-6 py-3 rounded hover:bg-teal-500">
+              Start Exploring
+            </a>
+            <a href="#" className="inline-block border border-gray-600 text-white px-6 py-3 rounded hover:bg-gray-700">
+              Learn More
+            </a>
+          </div>
+        </section>
+      );
+    }
+
+    function About() {
+      return (
+        <section id="about" className="py-12 bg-gray-900 text-white text-center">
+          <h2 className="text-3xl font-bold text-teal-400">About Coreweaver Labs</h2>
+          <p className="mt-4 max-w-3xl mx-auto">
+            From Sunset Beach, CA, we craft ethical AI and decentralized solutions to empower communities, enhance sustainability, and drive human progress.
+          </p>
+        </section>
+      );
+    }
+
+    function Capabilities() {
+      const capabilities = [
+        { title: "Ethical AI Systems", desc: "Develop AI prioritizing human values and real-world impact." },
+        { title: "Decentralized Networks", desc: "Build secure, scalable systems for trust and sustainability." },
+        { title: "Advanced Compute", desc: "Leverage high-performance GPUs for efficient AI solutions." },
+        { title: "AI Governance", desc: "Ensure transparency and responsibility in AI development." },
+        { title: "Agile Innovation", desc: "Create rapid, impactful solutions for a better world." },
+        { title: "Immersive Tools", desc: "Power visualizations for smart cities and collaboration." },
+      ];
+
+      return (
+        <section id="capabilities" className="py-12 bg-gray-800 text-white">
+          <h2 className="text-3xl font-bold text-teal-400 text-center">Our Capabilities</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mt-8">
+            {capabilities.map((cap, index) => (
+              <div key={index} className="p-6 bg-gray-700 rounded">
+                <h3 className="text-xl font-semibold text-teal-400">{cap.title}</h3>
+                <p className="mt-2 text-sm text-gray-300">{cap.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    function Navigator() {
+      const [departure, setDeparture] = useState('');
+      const [destination, setDestination] = useState('');
+      const [brief, setBrief] = useState('');
+      const departureOptions = ["Traffic Optimization", "Energy Efficiency", "Waste Management"];
+      const destinationOptions = ["Sustainable City", "Smart Grid", "Green Urban Space"];
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!departure && !destination) {
+          setBrief("Archie's Brief 🦆: Try a sample journey like Traffic Optimization to Sustainable City!");
+        } else {
+          setBrief(`Archie's Brief 🦆: Start your ${departure || 'project'} to ${destination || 'goal'} journey with decentralized AI for a smarter city!`);
+        }
+      };
+
+      return (
+        <section id="navigator" className="py-12 bg-gray-900 text-white text-center">
+          <h2 className="text-3xl font-bold text-teal-400">Explore Coreweaver Navigator</h2>
+          <p className="mt-4 max-w-3xl mx-auto">
+            Guide your AI project with a tailored brief from Archie. Enter your starting point and goal.
+          </p>
+          <div className="mt-6 max-w-lg mx-auto space-y-4">
+            <select
+              value={departure}
+              onChange={(e) => setDeparture(e.target.value)}
+              className="w-full p-3 bg-gray-700 text-white rounded"
+            >
+              <option value="">Select Departure</option>
+              {departureOptions.map((option, index) => (
+                <option key={index} value={option}>{option}</option>
+              ))}
+            </select>
+            <select
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="w-full p-3 bg-gray-700 text-white rounded"
+            >
+              <option value="">Select Destination</option>
+              {destinationOptions.map((option, index) => (
+                <option key={index} value={option}>{option}</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="w-full bg-teal-400 text-gray-900 px-6 py-3 rounded hover:bg-teal-500"
+              aria-label="Get brief button"
+            >
+              Get Your Brief
+            </button>
+            {brief && (
+              <div className="mt-4 p-4 bg-gray-700 rounded text-left">
+                <h3 className="text-xl font-semibold text-teal-400">Archie’s Navigational Brief</h3>
+                <p>{brief}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    }
+
+    function Contact() {
+      const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        alert('Inquiry sent! We’ll connect soon.');
+        setFormData({ name: '', email: '', message: '' });
+      };
+
+      return (
+        <section id="contact" className="py-12 bg-gray-800 text-white text-center">
+          <h2 className="text-3xl font-bold text-teal-400">Ready to Shape the Future?</h2>
+          <p className="mt-4 max-w-2xl mx-auto">
+            Connect with Coreweaver Labs to build ethical AI for a thriving planet.
+          </p>
+          <div className="max-w-xl mx-auto mt-8">
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Your Name"
+                className="w-full p-3 bg-gray-700 text-white rounded"
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Your Email"
+                className="w-full p-3 bg-gray-700 text-white rounded"
+              />
+              <textarea
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="Your Message"
+                className="w-full p-3 bg-gray-700 text-white rounded h-32"
+              ></textarea>
+              <button
+                onClick={handleSubmit}
+                className="bg-teal-400 text-gray-900 px-6 py-3 rounded hover:bg-teal-500"
+              >
+                Send Inquiry
+              </button>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="bg-gray-900 text-white text-center py-6">
+          <p>© 2025 Coreweaver Labs. All rights reserved.</p>
+          <div className="flex justify-center space-x-4 mt-2">
+            <a href="#" className="hover:text-teal-400">Privacy Policy</a>
+            <a href="#" className="hover:text-teal-400">Terms of Service</a>
+            <a href="#" className="hover:text-teal-400">Careers</a>
+          </div>
+        </footer>
+      );
+    }
+
+    function App() {
+      return (
+        <div>
+          <Navbar />
+          <Hero />
+          <About />
+          <Capabilities />
+          <Navigator />
+          <Contact />
+          <Footer />
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
